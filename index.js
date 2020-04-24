@@ -16,7 +16,19 @@ const app = new App({
   token: token
 });
 
-async function getAccessToken(callback) {
+function doRequest(options) {
+  return new Promise(function (resolve, reject) {
+    request(options, function (error, res, body) {
+      if (!error && res.statusCode == 200) {
+        resolve(body);
+      } else {
+        reject(error);
+      }
+    });
+  });
+}
+
+async function getAccessToken() {
   let headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/jwt',
@@ -28,23 +40,17 @@ async function getAccessToken(callback) {
       headers: headers,
       json: true
   };
-
-  request(options, function (err, res) {
-      if (err) {
-          console.log(err);
-          callback(err, null);
-      } else
-          callback(null, res.body);
-  });
+ let azureToken = await doRequest(options);
+ return azureToken;
 }
 
-async function translate(azureToken, text, toTranslate,  callback) {
+async function translate(azureToken, text, toTranslate) {
   let base_url = 'https://api.microsofttranslator.com/v2/http.svc/Translate',
       appid = 'Bearer ' + azureToken,
       to = toTranslate;
 
   let url = base_url + '?appid=' + appid + 
-              '&text=' + text + /*'&from=' + from +*/ '&to=' + to;
+              '&text=' + text + '&to=' + to;
   let headers = {
       'Accept': 'application/xml'
   };
@@ -55,14 +61,8 @@ async function translate(azureToken, text, toTranslate,  callback) {
       headers: headers,
       json: true
   };
-
-  request(options, function (err, res) {
-      if (err) {
-          console.log(err);
-          callback(err, null);
-      } else
-          callback(null, res.body.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g, ''));
-  });
+ let resultText = await doRequest(options);
+ return resultText.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g, '');
 }
 
 async function sleep(t) {
@@ -106,15 +106,18 @@ async function checkReaction(reaction){
 }
 
 async function translateForAzure(originalText, toTranslate){
-  await getAccessToken(function (err, azureToken) {
-    if (!err) {
-        // console.log(token);
-        translate(azureToken, originalText, toTranslate, (err, translated) => {
-            if (!err)
-                console.log(originalText, '->', translated);
-        });
-    }
-});
+  let azureToken = await getAccessToken();
+  let translatedText = await translate(azureToken, originalText, toTranslate);
+  return translatedText;
+}
+
+async function postMessage(channel, text, ts){
+  await app.client.chat.postMessage({
+    token: token,
+    channel: channel,
+    text: text,
+    thread_ts: ts
+  })
 }
 
 app.event('reaction_added', async ({ event, context }) => {
@@ -127,13 +130,29 @@ app.event('reaction_added', async ({ event, context }) => {
     if(toTranslate == false){
       throw new Error('Wrong Emoji');
     }
+    let prefix = 'This Message translated to ' + toTranslate; 
 
     const message = await getMessage(channelId, ts);
+    
+    //スレッド内では多重投稿を防げない
+    for(let i in message.messages){
+      if(message.messages[i].text.substring(0, prefix.length) == prefix){
+        throw new Error('Already translated');
+      }
+    }
+
+    const thread_ts = message.messages[0].thread_ts;
     const originalText = message.messages[0].text;
     
-    await translateForAzure(originalText, toTranslate);
-
+    let translated = await translateForAzure(originalText, toTranslate);
+    
+    if(thread_ts == undefined){
+      await postMessage(channelId, prefix + '\n' + translated, ts);  
+    }else{
+      await postMessage(channelId, prefix + '\n' + translated, thread_ts);
+    }
   } catch (error) {
+    logger.error(error);
     console.error(error);
   }
 });
