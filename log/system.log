@@ -1,0 +1,52 @@
+[2021-07-26T17:29:56.086] [ERROR] system - null
+[2021-07-26T17:30:52.502] [ERROR] system - Error: Wrong Emoji
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:179:13)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-26T17:32:35.867] [ERROR] system - null
+[2021-07-26T17:33:27.608] [ERROR] system - null
+[2021-07-26T17:35:50.349] [ERROR] system - null
+[2021-07-26T17:38:57.455] [ERROR] system - null
+[2021-07-27T14:41:04.715] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:103:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:259:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:42:09.732] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:103:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:259:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:43:03.760] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:104:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:260:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:44:47.965] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:104:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:260:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:45:24.692] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:105:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:261:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:46:04.400] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:105:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:261:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:46:24.141] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:105:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:261:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:50:27.717] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:105:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:261:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:53:15.812] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:104:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:260:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T14:53:49.758] [ERROR] system - TypeError: Cannot read property 'replace' of undefined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:104:23)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:260:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+[2021-07-27T15:10:45.668] [ERROR] system - ReferenceError: resultText is not defined
+    at translateText (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:104:17)
+    at app.event (C:\Users\tsuzuki-isao\Documents\git\slackTranslate\index.js:263:28)
+    at process._tickCallback (internal/process/next_tick.js:68:7)

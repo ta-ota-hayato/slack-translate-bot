@@ -1,6 +1,119 @@
 /* ---------- 初期化 ---------- */
 require('dotenv').config();
+
+
+const express = require("express");
+const fs = require("fs");
+const rp = require("request-promise");
+const expressApp = express();
+const helpers = require("./helpers");
+
+expressApp.get("/redirect", (req, res) => {
+  console.log(req.query.state);
+  // DO: verify that `req.query.state` is the same as your App provided when the flow was initialized
+
+  if (!req.query.code) {
+    // access denied
+    console.log("Access denied");
+    return;
+  }
+
+  let params = {
+    client_id: process.env.SLACK_CLIENT_ID,
+    client_secret: process.env.SLACK_CLIENT_SECRET,
+    redirect_uri: process.env.SLACK_REDIRECT_URL,
+    code: req.query.code
+  };
+
+  return rp({
+    url: helpers.getUrlWithParams("https://slack.com/api/oauth.v2.access", params),
+    method: "GET"
+  })
+    .then(result => {
+      let slackData = JSON.parse(result);
+
+      if (!slackData) throw new Error("Invalid Slack API data received");
+      if (!slackData.ok) throw new Error(slackData.error);
+
+      // DO: Store Access Tokens in your Database
+
+      console.log(slackData);
+
+      return res.sendStatus(200);
+
+      // DO: Show a nicer web page or redirect to the Slack workspace instead of just returning 200 OK
+    })
+    .catch(err => {
+      console.log(err);
+      return res.send({ error: err.message });
+    });
+});
+
+
+/* This simple app uses the '/translate' resource to translate text from
+one language to another. */
+
+/* This template relies on the request module, a simplified and user friendly
+way to make HTTP requests. */
 const request = require('request');
+const uuidv4 = require('uuid/v4');
+
+var key_var = 'TRANSLATOR_TEXT_SUBSCRIPTION_KEY';
+if (!process.env[key_var]) {
+    throw new Error('Please set/export the following environment variable: ' + key_var);
+}
+var subscriptionKey = process.env[key_var];
+var endpoint_var = 'TRANSLATOR_TEXT_ENDPOINT';
+if (!process.env[endpoint_var]) {
+    throw new Error('Please set/export the following environment variable: ' + endpoint_var);
+}
+var endpoint = process.env[endpoint_var];
+var region_var = 'TRANSLATOR_TEXT_REGION_AKA_LOCATION';
+if (!process.env[region_var]) {
+    throw new Error('Please set/export the following environment variable: ' + region_var);
+}
+var region = process.env[region_var];
+
+/* If you encounter any issues with the base_url or path, make sure that you are
+using the latest endpoint: https://docs.microsoft.com/azure/cognitive-services/translator/reference/v3-0-translate */
+async function translateText(text, toTranslate){
+    let options = {
+        method: 'POST',
+        baseUrl: endpoint,
+        url: 'translate',
+        qs: {
+          'api-version': '3.0',
+          'to': toTranslate
+        },
+        headers: {
+          'Ocp-Apim-Subscription-Key': subscriptionKey,
+          'Ocp-Apim-Subscription-Region': region,
+          'Content-type': 'application/json',
+          'X-ClientTraceId': uuidv4().toString()
+        },
+        body: [{
+              'text': text
+        }],
+        json: true,
+    };
+
+    let result = await doRequest(options);
+    //console.log(JSON.stringify(result, null, 4));
+    return result[0]['translations'][0]['text']
+};
+function doRequest(options){
+  return new Promise(function (resolve, reject){
+    request(options, function(error, res, body){
+      if (!error && res.statusCode == 200) {
+        resolve(body);
+      } else {
+        reject(error);
+      }
+      });
+    });
+}
+
+
 const env = process.env;
 const { App } = require('@slack/bolt');
 const log4js = require('log4js');
@@ -15,55 +128,6 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   token: token
 });
-
-function doRequest(options) {
-  return new Promise(function (resolve, reject) {
-    request(options, function (error, res, body) {
-      if (!error && res.statusCode == 200) {
-        resolve(body);
-      } else {
-        reject(error);
-      }
-    });
-  });
-}
-
-async function getAccessToken() {
-  let headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/jwt',
-      'Ocp-Apim-Subscription-Key': process.env.Azure_Translate_Text_key
-  };
-  let options = {
-      url: 'https://translaterbot.cognitiveservices.azure.com/sts/v1.0/issuetoken',
-      method: 'POST',
-      headers: headers,
-      json: true
-  };
- let azureToken = await doRequest(options);
- return azureToken;
-}
-
-async function translate(azureToken, text, toTranslate) {
-  let base_url = 'https://api.microsofttranslator.com/v2/http.svc/Translate',
-      appid = 'Bearer ' + azureToken,
-      to = toTranslate;
-
-  let url = base_url + '?appid=' + appid + 
-              '&text=' + text + '&to=' + to;
-  let headers = {
-      'Accept': 'application/xml'
-  };
-
-  let options = {
-      url: encodeURI(url),
-      method: 'get',
-      headers: headers,
-      json: true
-  };
- let resultText = await doRequest(options);
- return resultText.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g, '');
-}
 
 async function sleep(t) {
   return await new Promise(r => {
@@ -105,12 +169,6 @@ async function checkReaction(reaction){
   return toTranslate;
 }
 
-async function translateForAzure(originalText, toTranslate){
-  let azureToken = await getAccessToken();
-  let translatedText = await translate(azureToken, originalText, toTranslate);
-  return translatedText;
-}
-
 async function postMessage(channel, text, ts){
   await app.client.chat.postMessage({
     token: token,
@@ -143,9 +201,9 @@ app.event('reaction_added', async ({ event, context }) => {
 
     const thread_ts = message.messages[0].thread_ts;
     const originalText = message.messages[0].text;
-    
-    let translated = await translateForAzure(originalText, toTranslate);
-    
+
+    let translated = await translateText(originalText, toTranslate);
+
     if(thread_ts == undefined){
       await postMessage(channelId, prefix + '\n' + translated, ts);  
     }else{
